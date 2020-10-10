@@ -11,7 +11,7 @@ import tqdm
 import data
 import module
 
-
+# python train.py --dataset=anime --epoch=200 --adversarial_loss_mode=wgan --gradient_penalty_mode=wgan-gp --n_d=5
 # ==============================================================================
 # =                                   param                                    =
 # ==============================================================================
