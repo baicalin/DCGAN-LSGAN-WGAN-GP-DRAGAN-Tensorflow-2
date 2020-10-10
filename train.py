@@ -77,6 +77,9 @@ elif args.dataset == 'custom':
 # =                                   model                                    =
 # ==============================================================================
 
+
+
+
 # setup the normalization function for discriminator
 if args.gradient_penalty_mode == 'none':
     d_norm = 'batch_norm'
@@ -87,17 +90,22 @@ elif args.gradient_penalty_mode in ['dragan', 'wgan-gp']:  # cannot use batch no
     # Please tell me if you find out the cause.
     d_norm = 'layer_norm'
 
-# networks
-G = module.ConvGenerator(input_shape=(1, 1, args.z_dim), output_channels=shape[-1], n_upsamplings=n_G_upsamplings, name='G_%s' % args.dataset)
-D = module.ConvDiscriminator(input_shape=shape, n_downsamplings=n_D_downsamplings, norm=d_norm, name='D_%s' % args.dataset)
-G.summary()
-D.summary()
+strategy = tf.distribute.MirroredStrategy()
+print('Number of devies: {}'.format(strategy.num_replicas_in_sync))
 
-# adversarial_loss_functions
-d_loss_fn, g_loss_fn = gan.get_adversarial_losses_fn(args.adversarial_loss_mode)
+with strategy.scope():
 
-G_optimizer = keras.optimizers.Adam(learning_rate=args.lr, beta_1=args.beta_1)
-D_optimizer = keras.optimizers.Adam(learning_rate=args.lr, beta_1=args.beta_1)
+    # networks
+    G = module.ConvGenerator(input_shape=(1, 1, args.z_dim), output_channels=shape[-1], n_upsamplings=n_G_upsamplings, name='G_%s' % args.dataset)
+    D = module.ConvDiscriminator(input_shape=shape, n_downsamplings=n_D_downsamplings, norm=d_norm, name='D_%s' % args.dataset)
+    G.summary()
+    D.summary()
+
+    # adversarial_loss_functions
+    d_loss_fn, g_loss_fn = gan.get_adversarial_losses_fn(args.adversarial_loss_mode)
+
+    G_optimizer = keras.optimizers.Adam(learning_rate=args.lr, beta_1=args.beta_1)
+    D_optimizer = keras.optimizers.Adam(learning_rate=args.lr, beta_1=args.beta_1)
 
 
 # ==============================================================================
