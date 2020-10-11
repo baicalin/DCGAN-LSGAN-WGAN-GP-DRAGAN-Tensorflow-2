@@ -194,8 +194,8 @@ z = tf.random.normal((100, 1, 1, args.z_dim))  # a fixed noise for sampling
 #
 with train_summary_writer.as_default():
     for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
-        if int(ep) < int(ep_cnt):
-            continue
+        # if ep < ep_cnt:
+        #     continue
 
         # update epoch counter
         ep_cnt.assign_add(1)
@@ -215,5 +215,6 @@ with train_summary_writer.as_default():
                 img = im.immerge(x_fake, n_rows=10).squeeze()
                 im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
 
+        with strategy.scope():
         # save checkpoint
-        checkpoint.save(ep)
+            checkpoint.save(ep)
