@@ -5,9 +5,9 @@ import pylib as py
 import tensorflow as tf
 import tensorflow.keras as keras
 
-from tensorflow.python.framework.ops import disable_eager_execution
-
-disable_eager_execution()
+# from tensorflow.python.framework.ops import disable_eager_execution
+#
+# disable_eager_execution()
 
 import tf2lib as tl
 import tf2gan as gan
