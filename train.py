@@ -192,10 +192,9 @@ py.mkdir(sample_dir)
 # main loop
 z = tf.random.normal((100, 1, 1, args.z_dim))  # a fixed noise for sampling
 #
-@tf.function
 with train_summary_writer.as_default():
     for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
-        if ep < ep_cnt:
+        if int(ep) < int(ep_cnt):
             continue
 
         # update epoch counter
