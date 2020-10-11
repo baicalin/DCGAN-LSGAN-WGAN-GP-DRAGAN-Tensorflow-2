@@ -157,19 +157,20 @@ def sample(z):
 
 # epoch counter
 ep_cnt = tf.Variable(initial_value=0, trainable=False, dtype=tf.int64)
+with strategy.scope():
 
-# checkpoint
-checkpoint = tl.Checkpoint(dict(G=G,
-                                D=D,
-                                G_optimizer=G_optimizer,
-                                D_optimizer=D_optimizer,
-                                ep_cnt=ep_cnt),
-                           py.join(output_dir, 'checkpoints'),
-                           max_to_keep=5)
-try:  # restore checkpoint including the epoch counter
-    checkpoint.restore().assert_existing_objects_matched()
-except Exception as e:
-    print(e)
+    # checkpoint
+    checkpoint = tl.Checkpoint(dict(G=G,
+                                    D=D,
+                                    G_optimizer=G_optimizer,
+                                    D_optimizer=D_optimizer,
+                                    ep_cnt=ep_cnt),
+                               py.join(output_dir, 'checkpoints'),
+                               max_to_keep=5)
+    try:  # restore checkpoint including the epoch counter
+        checkpoint.restore().assert_existing_objects_matched()
+    except Exception as e:
+        print(e)
 
 # summary
 train_summary_writer = tf.summary.create_file_writer(py.join(output_dir, 'summaries', 'train'))
