@@ -182,38 +182,38 @@ with strategy.scope():
     except Exception as e:
         print(e)
 
-    # summary
-    train_summary_writer = tf.summary.create_file_writer(py.join(output_dir, 'summaries', 'train'))
+# summary
+train_summary_writer = tf.summary.create_file_writer(py.join(output_dir, 'summaries', 'train'))
 
-    # sample
-    sample_dir = py.join(output_dir, 'samples_training')
-    py.mkdir(sample_dir)
+# sample
+sample_dir = py.join(output_dir, 'samples_training')
+py.mkdir(sample_dir)
 
-    # main loop
-    z = tf.random.normal((100, 1, 1, args.z_dim))  # a fixed noise for sampling
-    #
-    with train_summary_writer.as_default():
-        for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
-            if ep < ep_cnt:
-                continue
+# main loop
+z = tf.random.normal((100, 1, 1, args.z_dim))  # a fixed noise for sampling
+#
+with train_summary_writer.as_default():
+    for ep in tqdm.trange(args.epochs, desc='Epoch Loop'):
+        # if ep < ep_cnt:
+        #     continue
 
-            # update epoch counter
-            ep_cnt.assign_add(1)
+        # update epoch counter
+        ep_cnt.assign_add(1)
 
-            # train for an epoch
-            for x_real in tqdm.tqdm(dataset, desc='Inner Epoch Loop', total=len_dataset):
-                D_loss_dict = train_D(x_real)
-                tl.summary(D_loss_dict, step=D_optimizer.iterations, name='D_losses')
+        # train for an epoch
+        for x_real in tqdm.tqdm(dataset, desc='Inner Epoch Loop', total=len_dataset):
+            D_loss_dict = train_D(x_real)
+            tl.summary(D_loss_dict, step=D_optimizer.iterations, name='D_losses')
 
-                if D_optimizer.iterations.numpy() % args.n_d == 0:
-                    G_loss_dict = train_G()
-                    tl.summary(G_loss_dict, step=G_optimizer.iterations, name='G_losses')
+            if D_optimizer.iterations.numpy() % args.n_d == 0:
+                G_loss_dict = train_G()
+                tl.summary(G_loss_dict, step=G_optimizer.iterations, name='G_losses')
 
-                # sample
-                if G_optimizer.iterations.numpy() % 100 == 0:
-                    x_fake = sample(z)
-                    img = im.immerge(x_fake, n_rows=10).squeeze()
-                    im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
+            # sample
+            if G_optimizer.iterations.numpy() % 100 == 0:
+                x_fake = sample(z)
+                img = im.immerge(x_fake, n_rows=10).squeeze()
+                im.imwrite(img, py.join(sample_dir, 'iter-%09d.jpg' % G_optimizer.iterations.numpy()))
 
-            # save checkpoint
-            checkpoint.save(ep)
+        # save checkpoint
+        checkpoint.save(ep)
