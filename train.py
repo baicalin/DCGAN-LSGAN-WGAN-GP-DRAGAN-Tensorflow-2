@@ -114,34 +114,39 @@ with strategy.scope():
 
 @tf.function
 def train_G():
-    with tf.GradientTape() as t:
-        z = tf.random.normal(shape=(args.batch_size, 1, 1, args.z_dim))
-        x_fake = G(z, training=True)
-        x_fake_d_logit = D(x_fake, training=True)
-        G_loss = g_loss_fn(x_fake_d_logit)
 
-    G_grad = t.gradient(G_loss, G.trainable_variables)
-    G_optimizer.apply_gradients(zip(G_grad, G.trainable_variables))
+    with strategy.scope():
+
+        with tf.GradientTape() as t:
+            z = tf.random.normal(shape=(args.batch_size, 1, 1, args.z_dim))
+            x_fake = G(z, training=True)
+            x_fake_d_logit = D(x_fake, training=True)
+            G_loss = g_loss_fn(x_fake_d_logit)
+
+        G_grad = t.gradient(G_loss, G.trainable_variables)
+        G_optimizer.apply_gradients(zip(G_grad, G.trainable_variables))
 
     return {'g_loss': G_loss}
 
 
 @tf.function
 def train_D(x_real):
-    with tf.GradientTape() as t:
-        z = tf.random.normal(shape=(args.batch_size, 1, 1, args.z_dim))
-        x_fake = G(z, training=True)
 
-        x_real_d_logit = D(x_real, training=True)
-        x_fake_d_logit = D(x_fake, training=True)
+    with strategy.scope():
+        with tf.GradientTape() as t:
+            z = tf.random.normal(shape=(args.batch_size, 1, 1, args.z_dim))
+            x_fake = G(z, training=True)
 
-        x_real_d_loss, x_fake_d_loss = d_loss_fn(x_real_d_logit, x_fake_d_logit)
-        gp = gan.gradient_penalty(functools.partial(D, training=True), x_real, x_fake, mode=args.gradient_penalty_mode)
+            x_real_d_logit = D(x_real, training=True)
+            x_fake_d_logit = D(x_fake, training=True)
 
-        D_loss = (x_real_d_loss + x_fake_d_loss) + gp * args.gradient_penalty_weight
+            x_real_d_loss, x_fake_d_loss = d_loss_fn(x_real_d_logit, x_fake_d_logit)
+            gp = gan.gradient_penalty(functools.partial(D, training=True), x_real, x_fake, mode=args.gradient_penalty_mode)
 
-    D_grad = t.gradient(D_loss, D.trainable_variables)
-    D_optimizer.apply_gradients(zip(D_grad, D.trainable_variables))
+            D_loss = (x_real_d_loss + x_fake_d_loss) + gp * args.gradient_penalty_weight
+
+        D_grad = t.gradient(D_loss, D.trainable_variables)
+        D_optimizer.apply_gradients(zip(D_grad, D.trainable_variables))
 
     return {'d_loss': x_real_d_loss + x_fake_d_loss, 'gp': gp}
 
