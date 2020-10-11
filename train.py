@@ -154,10 +154,10 @@ def sample(z):
 # ==============================================================================
 # =                                    run                                     =
 # ==============================================================================
-
-# epoch counter
-ep_cnt = tf.Variable(initial_value=0, trainable=False, dtype=tf.int64)
 with strategy.scope():
+
+    # epoch counter
+    ep_cnt = tf.Variable(initial_value=0, trainable=False, dtype=tf.int64)
 
     # checkpoint
     checkpoint = tl.Checkpoint(dict(G=G,
